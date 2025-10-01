@@ -43,7 +43,8 @@ jobs:
             LAST_MONTH="12"
             LAST_YEAR=$((CURRENT_YEAR - 1))
           else
-            LAST_MONTH=$(printf "%02d" $((10#$CURRENT_MONTH - 1)))
+            # Remove leading zero by converting to integer and back to string
+            LAST_MONTH=$((10#$CURRENT_MONTH - 1))
             LAST_YEAR=$CURRENT_YEAR
           fi
           
