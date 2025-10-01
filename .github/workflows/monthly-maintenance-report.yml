@@ -1,0 +1,170 @@
+name: Monthly Maintenance Report
+
+on:
+  schedule:
+    # Run on the 1st of every month at 8:00 AM UTC
+    - cron: '0 8 1 * *'
+  
+  # Allow manual triggering for testing
+  workflow_dispatch:
+    inputs:
+      site:
+        description: 'Site to generate report for (leave empty for all sites)'
+        required: false
+        type: choice
+        options:
+          - ''
+          - PASTA
+          - NOODLES
+          - SAGAMU
+          - AGBARA
+      month:
+        description: 'Month (1-12, leave empty for last month)'
+        required: false
+        type: string
+      year:
+        description: 'Year (leave empty for last month)'
+        required: false
+        type: string
+
+jobs:
+  send-monthly-reports:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Get last month's date
+        id: date
+        run: |
+          # Calculate last month and year
+          CURRENT_MONTH=$(date '+%m')
+          CURRENT_YEAR=$(date '+%Y')
+          
+          if [ "$CURRENT_MONTH" = "01" ]; then
+            LAST_MONTH="12"
+            LAST_YEAR=$((CURRENT_YEAR - 1))
+          else
+            LAST_MONTH=$(printf "%02d" $((10#$CURRENT_MONTH - 1)))
+            LAST_YEAR=$CURRENT_YEAR
+          fi
+          
+          echo "month=$LAST_MONTH" >> $GITHUB_OUTPUT
+          echo "year=$LAST_YEAR" >> $GITHUB_OUTPUT
+          echo "Last month: $LAST_MONTH/$LAST_YEAR"
+      
+      - name: Send report for PASTA site
+        if: ${{ github.event.inputs.site == '' || github.event.inputs.site == 'PASTA' }}
+        run: |
+          MONTH=${{ github.event.inputs.month || steps.date.outputs.month }}
+          YEAR=${{ github.event.inputs.year || steps.date.outputs.year }}
+          
+          echo "Sending PASTA report for $MONTH/$YEAR"
+          
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${{ secrets.BASE44_FUNCTION_URL }}/sendMonthlyReport" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.BASE44_API_TOKEN }}" \
+            -d "{
+              \"site\": \"PASTA\",
+              \"month\": $MONTH,
+              \"year\": $YEAR
+            }")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+          
+          echo "Response: $BODY"
+          echo "HTTP Code: $HTTP_CODE"
+          
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Error sending PASTA report"
+            exit 1
+          fi
+      
+      - name: Send report for NOODLES site
+        if: ${{ github.event.inputs.site == '' || github.event.inputs.site == 'NOODLES' }}
+        run: |
+          MONTH=${{ github.event.inputs.month || steps.date.outputs.month }}
+          YEAR=${{ github.event.inputs.year || steps.date.outputs.year }}
+          
+          echo "Sending NOODLES report for $MONTH/$YEAR"
+          
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${{ secrets.BASE44_FUNCTION_URL }}/sendMonthlyReport" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.BASE44_API_TOKEN }}" \
+            -d "{
+              \"site\": \"NOODLES\",
+              \"month\": $MONTH,
+              \"year\": $YEAR
+            }")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+          
+          echo "Response: $BODY"
+          echo "HTTP Code: $HTTP_CODE"
+          
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Error sending NOODLES report"
+            exit 1
+          fi
+      
+      - name: Send report for SAGAMU site
+        if: ${{ github.event.inputs.site == '' || github.event.inputs.site == 'SAGAMU' }}
+        run: |
+          MONTH=${{ github.event.inputs.month || steps.date.outputs.month }}
+          YEAR=${{ github.event.inputs.year || steps.date.outputs.year }}
+          
+          echo "Sending SAGAMU report for $MONTH/$YEAR"
+          
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${{ secrets.BASE44_FUNCTION_URL }}/sendMonthlyReport" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.BASE44_API_TOKEN }}" \
+            -d "{
+              \"site\": \"SAGAMU\",
+              \"month\": $MONTH,
+              \"year\": $YEAR
+            }")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+          
+          echo "Response: $BODY"
+          echo "HTTP Code: $HTTP_CODE"
+          
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Error sending SAGAMU report"
+            exit 1
+          fi
+      
+      - name: Send report for AGBARA site
+        if: ${{ github.event.inputs.site == '' || github.event.inputs.site == 'AGBARA' }}
+        run: |
+          MONTH=${{ github.event.inputs.month || steps.date.outputs.month }}
+          YEAR=${{ github.event.inputs.year || steps.date.outputs.year }}
+          
+          echo "Sending AGBARA report for $MONTH/$YEAR"
+          
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${{ secrets.BASE44_FUNCTION_URL }}/sendMonthlyReport" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.BASE44_API_TOKEN }}" \
+            -d "{
+              \"site\": \"AGBARA\",
+              \"month\": $MONTH,
+              \"year\": $YEAR
+            }")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+          
+          echo "Response: $BODY"
+          echo "HTTP Code: $HTTP_CODE"
+          
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Error sending AGBARA report"
+            exit 1
+          fi
+      
+      - name: Summary
+        if: always()
+        run: |
+          echo "Monthly maintenance reports processing completed"
+          echo "Check individual steps above for details"
